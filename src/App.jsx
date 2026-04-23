@@ -549,6 +549,7 @@ function App() {
             <button
               style={{
                 ...styles.primaryButton,
+                ...styles.primaryButtonHero,
                 ...(isMobile ? styles.primaryButtonMobile : {}),
               }}
               onClick={() => {
@@ -556,12 +557,27 @@ function App() {
                 setChatStarted(false);
               }}
             >
-              Start here
+              Start Your Free Guidance
             </button>
             <a href="#backup-form" style={styles.linkButtonSecondary}>
-              Use quick form
+              Prefer the quick form?
             </a>
           </div>
+
+          <div
+            style={{
+              ...styles.trustRow,
+              ...(isMobile ? styles.trustRowMobile : {}),
+            }}
+          >
+            <div style={styles.trustPill}>No pressure</div>
+            <div style={styles.trustPill}>Takes about 1 minute</div>
+            <div style={styles.trustPill}>Real follow-up from a local expert</div>
+          </div>
+
+          <p style={styles.reassuranceText}>
+            No spam, no hard sell, and no need to be fully ready yet.
+          </p>
 
           <div
             style={{
@@ -585,7 +601,8 @@ function App() {
             <div style={styles.featureCard}>
               <strong>Fast follow-up</strong>
               <p style={styles.featureText}>
-                Get a quick response so you can move forward with more clarity.
+                Get a quick, thoughtful response so you can move forward with
+                more clarity.
               </p>
             </div>
           </div>
@@ -597,24 +614,24 @@ function App() {
             ...(isMobile ? styles.heroPanelMobile : {}),
           }}
         >
-          <p style={styles.heroPanelLabel}>What you can expect</p>
+          <p style={styles.heroPanelLabel}>A simple first step</p>
           <h2
             style={{
               ...styles.heroPanelTitle,
               ...(isMobile ? styles.heroPanelTitleMobile : {}),
             }}
           >
-            A better way to begin your real estate move.
+            Friendly guidance without the overwhelm.
           </h2>
           <div style={styles.heroPanelList}>
             <div style={styles.heroPanelItem}>
               Help for buyers, sellers, and people still exploring
             </div>
             <div style={styles.heroPanelItem}>
-              A guided conversation with clear next steps
+              A guided conversation tailored to your goals
             </div>
             <div style={styles.heroPanelItem}>
-              A simple way to ask questions and get started
+              Clear next steps based on your timing and priorities
             </div>
             <div style={styles.heroPanelItem}>
               Easy connection when you’re ready to move forward
@@ -815,6 +832,11 @@ function App() {
                     ? `Progress ${progress}%`
                     : "Ready when you are"}
               </div>
+              {!chatStarted ? (
+                <div style={styles.assistantIntroText}>
+                  Friendly, no-pressure guidance for your next move.
+                </div>
+              ) : null}
             </div>
             <div style={styles.assistantHeaderActions}>
               <button
@@ -1114,6 +1136,30 @@ const styles = {
     border: "1px solid #cbd5e1",
     fontWeight: "bold",
   },
+  trustRow: {
+    display: "flex",
+    gap: "10px",
+    flexWrap: "wrap",
+    marginTop: "4px",
+  },
+  trustRowMobile: {
+    gap: "8px",
+  },
+  trustPill: {
+    backgroundColor: "#ffffff",
+    color: "#334155",
+    border: "1px solid #dbe4ff",
+    borderRadius: "999px",
+    padding: "8px 12px",
+    fontSize: "13px",
+    fontWeight: "bold",
+  },
+  reassuranceText: {
+    margin: 0,
+    color: "#475569",
+    fontSize: "14px",
+    lineHeight: 1.6,
+  },
   featureGrid: {
     display: "grid",
     gridTemplateColumns: "repeat(3, 1fr)",
@@ -1281,6 +1327,11 @@ const styles = {
     cursor: "pointer",
     fontSize: "15px",
   },
+  primaryButtonHero: {
+    background: "linear-gradient(135deg, #0f172a 0%, #1d4ed8 100%)",
+    boxShadow: "0 14px 30px rgba(29, 78, 216, 0.22)",
+    padding: "16px 24px",
+  },
   primaryButtonMobile: {
     width: "100%",
     fontSize: "14px",
@@ -1371,6 +1422,13 @@ const styles = {
   },
   assistantSubTitleMobile: {
     fontSize: "12px",
+  },
+  assistantIntroText: {
+    marginTop: "8px",
+    color: "#475569",
+    fontSize: "12px",
+    lineHeight: 1.5,
+    maxWidth: "240px",
   },
   assistantHeaderActions: {
     display: "flex",
