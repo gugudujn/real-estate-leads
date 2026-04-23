@@ -495,7 +495,10 @@ function App() {
 
           <div style={styles.heroButtons}>
             <button
-              style={styles.primaryButton}
+              style={{
+                ...styles.primaryButton,
+                ...(isMobile ? styles.primaryButtonMobile : {}),
+              }}
               onClick={() => {
                 setIsAssistantOpen(true);
                 setChatStarted(false);
@@ -568,7 +571,12 @@ function App() {
         </div>
       </section>
 
-      <section style={styles.sectionLight}>
+      <section
+        style={{
+          ...styles.sectionLight,
+          ...(isMobile ? styles.sectionLightMobile : {}),
+        }}
+      >
         <div
           style={{
             ...styles.infoGrid,
@@ -599,7 +607,12 @@ function App() {
       </section>
 
       <section id="backup-form" style={styles.section}>
-        <div style={styles.backupCard}>
+        <div
+          style={{
+            ...styles.backupCard,
+            ...(isMobile ? styles.backupCardMobile : {}),
+          }}
+        >
           <h2
             style={{
               ...styles.sectionTitle,
@@ -690,7 +703,11 @@ function App() {
             />
             <button
               type="submit"
-              style={{ ...styles.primaryButton, gridColumn: "1 / -1" }}
+              style={{
+                ...styles.primaryButton,
+                ...(isMobile ? styles.primaryButtonMobile : {}),
+                gridColumn: "1 / -1",
+              }}
               disabled={backupSubmitting}
             >
               {backupSubmitting ? "Submitting..." : "Submit"}
@@ -827,7 +844,10 @@ function App() {
           {!chatStarted ? (
             <div style={styles.assistantDoneArea}>
               <button
-                style={styles.primaryButton}
+                style={{
+                  ...styles.primaryButton,
+                  ...(isMobile ? styles.primaryButtonMobile : {}),
+                }}
                 onClick={() => {
                   setChatStarted(true);
                   setStepIndex(0);
@@ -925,7 +945,10 @@ function App() {
           ) : (
             <div style={styles.assistantDoneArea}>
               <button
-                style={styles.primaryButton}
+                style={{
+                  ...styles.primaryButton,
+                  ...(isMobile ? styles.primaryButtonMobile : {}),
+                }}
                 onClick={restartConversation}
               >
                 Start over
@@ -1091,6 +1114,9 @@ const styles = {
     backgroundColor: "#ffffff",
     padding: "56px 20px",
   },
+  sectionLightMobile: {
+    padding: "36px 16px",
+  },
   sectionTitle: {
     fontSize: "32px",
     marginBottom: "10px",
@@ -1137,6 +1163,10 @@ const styles = {
     border: "1px solid #e2e8f0",
     boxShadow: "0 12px 30px rgba(15, 23, 42, 0.08)",
   },
+  backupCardMobile: {
+    padding: "22px",
+    borderRadius: "20px",
+  },
   backupGrid: {
     display: "grid",
     gridTemplateColumns: "1fr 1fr",
@@ -1176,6 +1206,11 @@ const styles = {
     fontWeight: "bold",
     cursor: "pointer",
     fontSize: "15px",
+  },
+  primaryButtonMobile: {
+    width: "100%",
+    fontSize: "14px",
+    padding: "13px 16px",
   },
   successNote: {
     color: "#166534",
@@ -1231,12 +1266,12 @@ const styles = {
     overflow: "hidden",
   },
   assistantPanelMobile: {
-    right: 0,
-    bottom: 0,
-    width: "100vw",
-    height: "100vh",
-    maxHeight: "100vh",
-    borderRadius: 0,
+    right: "12px",
+    bottom: "12px",
+    width: "calc(100vw - 24px)",
+    height: "calc(100dvh - 24px)",
+    maxHeight: "calc(100dvh - 24px)",
+    borderRadius: "20px",
   },
   assistantHeader: {
     display: "flex",
