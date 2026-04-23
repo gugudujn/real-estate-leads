@@ -89,6 +89,25 @@ function normalizeDisplayValue(key, value) {
   return value;
 }
 
+function isValidEmail(value) {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
+}
+
+function getFieldError(key, rawValue) {
+  const value = (rawValue || "").trim();
+
+  if (key === "name" && !value) {
+    return "Please enter your name.";
+  }
+
+  if (key === "email") {
+    if (!value) return "Please enter your email.";
+    if (!isValidEmail(value)) return "Please enter a valid email address.";
+  }
+
+  return "";
+}
+
 function App() {
   const [stepIndex, setStepIndex] = useState(0);
   const [submitting, setSubmitting] = useState(false);
@@ -111,6 +130,8 @@ function App() {
   const [backupSubmitting, setBackupSubmitting] = useState(false);
   const [backupSubmitted, setBackupSubmitted] = useState(false);
   const [backupError, setBackupError] = useState("");
+  const [backupFieldErrors, setBackupFieldErrors] = useState({});
+  const [assistantFieldError, setAssistantFieldError] = useState("");
 
   const [data, setData] = useState({
     leadType: "",
@@ -289,6 +310,7 @@ function App() {
   ]);
 
   function updateField(key, value) {
+    setAssistantFieldError((prev) => (currentStep.key === key ? "" : prev));
     setData((prev) => ({ ...prev, [key]: value }));
   }
 
@@ -312,6 +334,14 @@ function App() {
   function handleCurrentInputSubmit(e) {
     e.preventDefault();
     const value = (data[currentStep.key] || "").trim();
+    const fieldError = getFieldError(currentStep.key, value);
+
+    if (fieldError) {
+      setAssistantFieldError(fieldError);
+      return;
+    }
+
+    setAssistantFieldError("");
 
     if (!value) {
       if (currentStep.optional) {
@@ -340,6 +370,14 @@ function App() {
   }
 
   async function submitLead() {
+    const nameError = getFieldError("name", data.name);
+    const emailError = getFieldError("email", data.email);
+
+    if (nameError || emailError) {
+      setAssistantFieldError(nameError || emailError);
+      return;
+    }
+
     setError("");
     setSubmitting(true);
 
@@ -375,12 +413,24 @@ function App() {
   }
 
   function updateBackupField(key, value) {
+    setBackupFieldErrors((prev) => ({ ...prev, [key]: "" }));
     setBackupForm((prev) => ({ ...prev, [key]: value }));
+  }
+
+  function validateBackupForm() {
+    const nextErrors = {
+      name: getFieldError("name", backupForm.name),
+      email: getFieldError("email", backupForm.email),
+    };
+
+    setBackupFieldErrors(nextErrors);
+    return !nextErrors.name && !nextErrors.email;
   }
 
   async function submitBackupForm(e) {
     e.preventDefault();
     setBackupError("");
+    if (!validateBackupForm()) return;
     setBackupSubmitting(true);
     setBackupSubmitted(false);
 
@@ -423,6 +473,7 @@ function App() {
         leadType: "",
         notes: "",
       });
+      setBackupFieldErrors({});
     } catch (err) {
       console.error(err);
       setBackupError(
@@ -438,6 +489,7 @@ function App() {
     setSubmitting(false);
     setSubmitted(false);
     setError("");
+    setAssistantFieldError("");
     setChatStarted(false);
     setChatSessionKey((prev) => prev + 1);
 
@@ -637,28 +689,36 @@ function App() {
               ...(isMobile ? styles.backupGridMobile : {}),
             }}
           >
-            <input
-              style={{
-                ...styles.input,
-                ...(isMobile ? styles.inputMobile : {}),
-              }}
-              type="text"
-              placeholder="Full name"
-              value={backupForm.name}
-              onChange={(e) => updateBackupField("name", e.target.value)}
-              required
-            />
-            <input
-              style={{
-                ...styles.input,
-                ...(isMobile ? styles.inputMobile : {}),
-              }}
-              type="email"
-              placeholder="Email address"
-              value={backupForm.email}
-              onChange={(e) => updateBackupField("email", e.target.value)}
-              required
-            />
+            <div style={styles.fieldWrap}>
+              <input
+                style={{
+                  ...styles.input,
+                  ...(isMobile ? styles.inputMobile : {}),
+                }}
+                type="text"
+                placeholder="Full name"
+                value={backupForm.name}
+                onChange={(e) => updateBackupField("name", e.target.value)}
+              />
+              {backupFieldErrors.name ? (
+                <p style={styles.fieldError}>{backupFieldErrors.name}</p>
+              ) : null}
+            </div>
+            <div style={styles.fieldWrap}>
+              <input
+                style={{
+                  ...styles.input,
+                  ...(isMobile ? styles.inputMobile : {}),
+                }}
+                type="email"
+                placeholder="Email address"
+                value={backupForm.email}
+                onChange={(e) => updateBackupField("email", e.target.value)}
+              />
+              {backupFieldErrors.email ? (
+                <p style={styles.fieldError}>{backupFieldErrors.email}</p>
+              ) : null}
+            </div>
             <input
               style={{
                 ...styles.input,
@@ -910,6 +970,10 @@ function App() {
                     : "Send"}
                 </button>
               </div>
+
+              {assistantFieldError ? (
+                <p style={styles.fieldError}>{assistantFieldError}</p>
+              ) : null}
 
               <div style={styles.assistantFooterRow}>
                 <button
@@ -1175,6 +1239,16 @@ const styles = {
   },
   backupGridMobile: {
     gridTemplateColumns: "1fr",
+  },
+  fieldWrap: {
+    display: "grid",
+    gap: "6px",
+  },
+  fieldError: {
+    margin: 0,
+    color: "#dc2626",
+    fontSize: "13px",
+    lineHeight: 1.4,
   },
   input: {
     width: "100%",
