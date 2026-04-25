@@ -1,5 +1,8 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { House, MapPinned, PhoneCall } from "lucide-react";
+import heroImage from "./assets/hero.png";
+import agentPhoto from "./assets/abdul.JPG";
+import { agentProfile } from "./config/agentProfile";
 
 const WEBHOOK_URL = "https://hooks.zapier.com/hooks/catch/27287146/ujq273d/";
 
@@ -110,6 +113,21 @@ function getFieldError(key, rawValue) {
 }
 
 function App() {
+  const agentName = agentProfile?.name || "Your Name";
+  const agentTitle = agentProfile?.title || "Real Estate Advisor";
+  const agentPhone = agentProfile?.phone || "XXX-XXX-XXXX";
+  const agentEmail = agentProfile?.email || "your@email.com";
+  const agentHeadline =
+    agentProfile?.headline ||
+    "Talk to a Local Expert Who Understands Your Market";
+  const agentDescription =
+    agentProfile?.description ||
+    "Get clear guidance from a local expert who understands your market, timing, and next steps.";
+  const agentCtaText = agentProfile?.ctaText || "Get Your Plan";
+  const agentTrustLine =
+    agentProfile?.trustLine || "Local insights • Fast response • No pressure";
+  const agentPhotoAlt = agentProfile?.photoAlt || agentName;
+
   const [stepIndex, setStepIndex] = useState(0);
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
@@ -245,7 +263,8 @@ function App() {
         return {
           ...step,
           prompt: "Who should I prepare these next steps for?",
-          helper: "I'll keep the follow-up personal and relevant to your goals.",
+          helper:
+            "I'll keep the follow-up personal and relevant to your goals.",
         };
       }
 
@@ -261,7 +280,8 @@ function App() {
       if (step.key === "phone") {
         return {
           ...step,
-          prompt: "What's the best phone number if a quick call or text would help?",
+          prompt:
+            "What's the best phone number if a quick call or text would help?",
           helper: "Optional - helpful if you'd like faster answers.",
         };
       }
@@ -582,7 +602,8 @@ function App() {
               ...(isMobile ? styles.heroTitleMobile : {}),
             }}
           >
-            Get a clear 60-second plan to buy, sell, or move forward with confidence.
+            Get a clear 60-second plan to buy, sell, or move forward with
+            confidence.
           </h1>
           <p
             style={{
@@ -724,6 +745,106 @@ function App() {
           </div>
         </div>
       </section>
+
+      {/* Agent Trust Section START */}
+      <section style={styles.section}>
+        <div
+          style={{
+            ...styles.infoCard,
+            maxWidth: "720px",
+            margin: "0 auto",
+            textAlign: "center",
+            boxShadow: "0 8px 20px rgba(15, 23, 42, 0.04)",
+          }}
+        >
+          <img
+            src={agentPhoto}
+            alt={agentPhotoAlt}
+            style={{
+              width: "96px",
+              height: "96px",
+              borderRadius: "50%",
+              objectFit: "cover",
+              display: "block",
+              margin: "0 auto 16px",
+              border: "2px solid #fff",
+              boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
+            }}
+          />
+          <h2
+            style={{
+              ...styles.sectionTitle,
+              ...(isMobile ? styles.sectionTitleMobile : {}),
+              marginBottom: "12px",
+            }}
+          >
+            {agentHeadline}
+          </h2>
+          <p
+            style={{
+              margin: 0,
+              fontSize: "22px",
+              fontWeight: "bold",
+              color: "#0f172a",
+            }}
+          >
+            {agentName}
+          </p>
+          <p
+            style={{
+              ...styles.sectionSubtitle,
+              ...(isMobile ? styles.sectionSubtitleMobile : {}),
+              margin: "8px auto 0",
+            }}
+          >
+            {agentTitle}
+          </p>
+          <p style={{ ...styles.infoText, marginTop: "14px" }}>
+            {agentDescription}
+          </p>
+          <p style={{ ...styles.infoText, marginTop: "14px" }}>
+            Call/Text: {agentPhone}
+          </p>
+          <p style={{ ...styles.infoText, marginTop: "4px" }}>
+            Email: {agentEmail}
+          </p>
+          <div style={{ marginTop: "18px" }}>
+            <a
+              href="#backup-form"
+              style={{
+                ...styles.primaryButton,
+                ...(isMobile ? styles.primaryButtonMobile : {}),
+                display: "inline-block",
+                textDecoration: "none",
+              }}
+            >
+              {agentCtaText}
+            </a>
+          </div>
+          <p
+            style={{
+              ...styles.infoText,
+              fontSize: "13px",
+              marginTop: "14px",
+              color: "#64748b",
+            }}
+          >
+            {agentTrustLine}
+          </p>
+          <p
+            style={{
+              ...styles.infoText,
+              display: "none",
+              fontSize: "13px",
+              marginTop: "14px",
+              color: "#64748b",
+            }}
+          >
+            Local market insights • Fast response • No pressure
+          </p>
+        </div>
+      </section>
+      {/* Agent Trust Section END */}
 
       <section
         style={{
