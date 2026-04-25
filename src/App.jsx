@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
+import { House, MapPinned, PhoneCall } from "lucide-react";
 
 const WEBHOOK_URL = "https://hooks.zapier.com/hooks/catch/27287146/ujq273d/";
 
@@ -239,7 +240,42 @@ function App() {
       },
     );
 
-    return list;
+    return list.map((step) => {
+      if (step.key === "name") {
+        return {
+          ...step,
+          prompt: "Who should I prepare these next steps for?",
+          helper: "I'll keep the follow-up personal and relevant to your goals.",
+        };
+      }
+
+      if (step.key === "email") {
+        return {
+          ...step,
+          prompt: "What's the best email for your tailored next steps?",
+          helper:
+            "I'll send useful options, pricing insight, or strategy notes there.",
+        };
+      }
+
+      if (step.key === "phone") {
+        return {
+          ...step,
+          prompt: "What's the best phone number if a quick call or text would help?",
+          helper: "Optional - helpful if you'd like faster answers.",
+        };
+      }
+
+      if (step.key === "notes") {
+        return {
+          ...step,
+          prompt: "Anything I should include in your recommendations?",
+          helper: "Optional - must-haves, timing, concerns, or questions.",
+        };
+      }
+
+      return step;
+    });
   }, [data.leadType]);
 
   const currentStep = steps[stepIndex];
@@ -273,6 +309,13 @@ function App() {
         "Answer a few quick questions and I’ll help you with the next step.",
     });
 
+    msgs[0] = {
+      role: "assistant",
+      text: "Hi there - I'm here to help you make a confident next move, whether you're buying, selling, or just exploring.",
+      helper:
+        "Share a few details and I'll point you toward the most useful next step.",
+    };
+
     if (!isAssistantOpen || !chatStarted) return msgs;
 
     for (let i = 0; i <= Math.min(stepIndex, steps.length - 1); i += 1) {
@@ -296,6 +339,13 @@ function App() {
         role: "assistant",
         text: `Thanks, ${data.name || "there"}. I’ve received your information and someone will follow up with you soon.`,
       });
+    }
+
+    if (submitted) {
+      msgs[msgs.length - 1] = {
+        role: "assistant",
+        text: `Thanks, ${data.name || "there"}. I've got what I need to prepare useful next steps, and someone will follow up with you soon.`,
+      };
     }
 
     return msgs;
@@ -532,7 +582,7 @@ function App() {
               ...(isMobile ? styles.heroTitleMobile : {}),
             }}
           >
-            Buying, selling, or just exploring? Start here.
+            Get a clear 60-second plan to buy, sell, or move forward with confidence.
           </h1>
           <p
             style={{
@@ -557,10 +607,10 @@ function App() {
                 setChatStarted(false);
               }}
             >
-              Start Your Free Guidance
+              Get My 60-Second Plan
             </button>
             <a href="#backup-form" style={styles.linkButtonSecondary}>
-              Prefer the quick form?
+              Or use the quick form
             </a>
           </div>
 
@@ -570,13 +620,13 @@ function App() {
               ...(isMobile ? styles.trustRowMobile : {}),
             }}
           >
-            <div style={styles.trustPill}>No pressure</div>
-            <div style={styles.trustPill}>Takes about 1 minute</div>
-            <div style={styles.trustPill}>Real follow-up from a local expert</div>
+            <div style={styles.trustPill}>Free guidance</div>
+            <div style={styles.trustPill}>No spam</div>
+            <div style={styles.trustPill}>Local expert follow-up</div>
           </div>
 
           <p style={styles.reassuranceText}>
-            No spam, no hard sell, and no need to be fully ready yet.
+            Takes less than a minute. No calls unless you want one.
           </p>
 
           <div
@@ -586,20 +636,35 @@ function App() {
             }}
           >
             <div style={styles.featureCard}>
-              <strong>Personal guidance</strong>
+              <div style={styles.featureTitleRow}>
+                <div style={styles.featureIconBadge}>
+                  <House size={18} strokeWidth={2.2} />
+                </div>
+                <strong>Personal guidance</strong>
+              </div>
               <p style={styles.featureText}>
                 Get help based on your goals, timeline, and location.
               </p>
             </div>
             <div style={styles.featureCard}>
-              <strong>Simple next steps</strong>
+              <div style={styles.featureTitleRow}>
+                <div style={styles.featureIconBadge}>
+                  <MapPinned size={18} strokeWidth={2.2} />
+                </div>
+                <strong>Simple next steps</strong>
+              </div>
               <p style={styles.featureText}>
                 Whether you’re buying or selling, we’ll guide you one step at a
                 time.
               </p>
             </div>
             <div style={styles.featureCard}>
-              <strong>Fast follow-up</strong>
+              <div style={styles.featureTitleRow}>
+                <div style={styles.featureIconBadge}>
+                  <PhoneCall size={18} strokeWidth={2.2} />
+                </div>
+                <strong>Fast follow-up</strong>
+              </div>
               <p style={styles.featureText}>
                 Get a quick, thoughtful response so you can move forward with
                 more clarity.
@@ -623,6 +688,26 @@ function App() {
           >
             Friendly guidance without the overwhelm.
           </h2>
+          <div style={styles.heroVisual}>
+            <div style={styles.heroVisualTop}>
+              <div style={styles.heroVisualIconWrap}>
+                <House size={28} strokeWidth={2.2} />
+              </div>
+              <div>
+                <div style={styles.heroVisualEyebrow}>
+                  Personalized real estate plan
+                </div>
+                <div style={styles.heroVisualTitle}>
+                  Simple guidance for buyers, sellers, and explorers
+                </div>
+              </div>
+            </div>
+            <div style={styles.heroVisualChips}>
+              <span style={styles.heroVisualChip}>Buy</span>
+              <span style={styles.heroVisualChip}>Sell</span>
+              <span style={styles.heroVisualChip}>Explore</span>
+            </div>
+          </div>
           <div style={styles.heroPanelList}>
             <div style={styles.heroPanelItem}>
               Help for buyers, sellers, and people still exploring
@@ -688,7 +773,7 @@ function App() {
               ...(isMobile ? styles.sectionTitleMobile : {}),
             }}
           >
-            Prefer a quick form?
+            Prefer the quick form?
           </h2>
           <p
             style={{
@@ -696,7 +781,8 @@ function App() {
               ...(isMobile ? styles.sectionSubtitleMobile : {}),
             }}
           >
-            Fill this out and someone will follow up with you soon.
+            Short on time? Fill this out in under a minute and we will send the
+            right next step without making things complicated.
           </p>
 
           <form
@@ -834,7 +920,8 @@ function App() {
               </div>
               {!chatStarted ? (
                 <div style={styles.assistantIntroText}>
-                  Friendly, no-pressure guidance for your next move.
+                  Fast, no-pressure guidance designed to give you a useful next
+                  step in about 60 seconds.
                 </div>
               ) : null}
             </div>
@@ -1056,7 +1143,7 @@ function App() {
           }}
         >
           <span style={styles.launcherIcon}>💬</span>
-          <span>Start here</span>
+          <span>Get My Plan</span>
         </button>
       ) : null}
     </div>
@@ -1156,9 +1243,10 @@ const styles = {
   },
   reassuranceText: {
     margin: 0,
-    color: "#475569",
+    color: "#0f172a",
     fontSize: "14px",
     lineHeight: 1.6,
+    fontWeight: "bold",
   },
   featureGrid: {
     display: "grid",
@@ -1175,6 +1263,22 @@ const styles = {
     borderRadius: "16px",
     padding: "16px",
   },
+  featureTitleRow: {
+    display: "flex",
+    alignItems: "center",
+    gap: "10px",
+  },
+  featureIconBadge: {
+    width: "38px",
+    height: "38px",
+    borderRadius: "12px",
+    backgroundColor: "#eff6ff",
+    color: "#1d4ed8",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    flexShrink: 0,
+  },
   featureText: {
     marginTop: "8px",
     color: "#475569",
@@ -1187,6 +1291,57 @@ const styles = {
     borderRadius: "24px",
     padding: "28px",
     alignSelf: "stretch",
+  },
+  heroVisual: {
+    marginBottom: "20px",
+    padding: "18px",
+    borderRadius: "18px",
+    background:
+      "linear-gradient(180deg, rgba(255,255,255,0.14) 0%, rgba(255,255,255,0.06) 100%)",
+    border: "1px solid rgba(255,255,255,0.12)",
+  },
+  heroVisualTop: {
+    display: "flex",
+    gap: "12px",
+    alignItems: "center",
+  },
+  heroVisualIconWrap: {
+    width: "54px",
+    height: "54px",
+    borderRadius: "16px",
+    backgroundColor: "#ffffff",
+    color: "#0f172a",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    flexShrink: 0,
+  },
+  heroVisualEyebrow: {
+    fontSize: "11px",
+    textTransform: "uppercase",
+    letterSpacing: "0.1em",
+    color: "#cbd5e1",
+    marginBottom: "4px",
+  },
+  heroVisualTitle: {
+    fontSize: "15px",
+    lineHeight: 1.5,
+    color: "#ffffff",
+    fontWeight: "bold",
+  },
+  heroVisualChips: {
+    display: "flex",
+    gap: "8px",
+    flexWrap: "wrap",
+    marginTop: "14px",
+  },
+  heroVisualChip: {
+    padding: "7px 10px",
+    borderRadius: "999px",
+    backgroundColor: "rgba(255,255,255,0.1)",
+    border: "1px solid rgba(255,255,255,0.12)",
+    fontSize: "12px",
+    color: "#e2e8f0",
   },
   heroPanelMobile: {
     padding: "22px",
@@ -1328,9 +1483,10 @@ const styles = {
     fontSize: "15px",
   },
   primaryButtonHero: {
-    background: "linear-gradient(135deg, #0f172a 0%, #1d4ed8 100%)",
-    boxShadow: "0 14px 30px rgba(29, 78, 216, 0.22)",
+    background: "linear-gradient(135deg, #ea580c 0%, #dc2626 100%)",
+    boxShadow: "0 18px 38px rgba(220, 38, 38, 0.28)",
     padding: "16px 24px",
+    border: "1px solid rgba(255,255,255,0.2)",
   },
   primaryButtonMobile: {
     width: "100%",
@@ -1352,7 +1508,7 @@ const styles = {
     right: "24px",
     bottom: "24px",
     zIndex: 1000,
-    backgroundColor: "#0f172a",
+    background: "linear-gradient(135deg, #ea580c 0%, #dc2626 100%)",
     color: "#ffffff",
     border: "none",
     borderRadius: "999px",
@@ -1360,15 +1516,18 @@ const styles = {
     display: "flex",
     alignItems: "center",
     gap: "10px",
-    boxShadow: "0 12px 30px rgba(15, 23, 42, 0.35)",
+    boxShadow: "0 16px 34px rgba(220, 38, 38, 0.3)",
     cursor: "pointer",
     fontWeight: "bold",
     fontSize: "15px",
   },
   floatingLauncherMobile: {
     right: "16px",
+    left: "16px",
     bottom: "16px",
-    padding: "12px 16px",
+    width: "calc(100vw - 32px)",
+    justifyContent: "center",
+    padding: "13px 16px",
     fontSize: "14px",
   },
   launcherIcon: {
