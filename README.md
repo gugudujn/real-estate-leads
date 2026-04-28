@@ -1,16 +1,36 @@
-# React + Vite
+# Real Estate Leads
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+## Environment setup
 
-Currently, two official plugins are available:
+OpenAI analysis is server-side only and always reads the API key from:
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+`process.env.OPENAI_API_KEY`
 
-## React Compiler
+### Local development
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+1. Copy `.env.example` to `.env`
+2. Set:
 
-## Expanding the ESLint configuration
+```env
+OPENAI_API_KEY=your_openai_api_key_here
+OPENAI_MODEL=gpt-5.4-mini
+```
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+3. Run:
+
+```bash
+npm run dev
+```
+
+`dotenv` loads `.env` locally for the server-side lead-analysis code. The API key is never exposed to the browser.
+
+### Netlify
+
+Set these environment variables in Netlify:
+
+- `OPENAI_API_KEY`
+- `OPENAI_MODEL` optional
+
+The deployed function and local development both use the same server-side access pattern:
+
+`process.env.OPENAI_API_KEY`
