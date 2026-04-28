@@ -3,6 +3,7 @@ import { House, MapPinned, PhoneCall } from "lucide-react";
 import heroImage from "./assets/hero.png";
 import agentPhoto from "./assets/abdul.JPG";
 import { agentProfile } from "./config/agentProfile";
+import { requestLeadAnalysis } from "./services/leadAnalysis";
 
 const WEBHOOK_URL = "https://hooks.zapier.com/hooks/catch/27287146/ujq273d/";
 
@@ -50,6 +51,85 @@ const financingOptions = [
   "Cash buyer",
   "Need financing",
   "Not sure yet",
+];
+
+const quickFormTimelineOptions = [
+  "0–30 days",
+  "1-3 months",
+  "3-6 months",
+  "Just browsing",
+];
+
+const quickFormPropertyTypeOptions = [
+  "Single-family home",
+  "Condo",
+  "Townhouse",
+  "Land",
+  "Investment property",
+  "Other",
+];
+
+const quickFormTestLeads = [
+  {
+    name: "Seller Lead One",
+    email: "sellerleadone@example.com",
+    phone: "904-555-0198",
+    leadType: "Selling",
+    location: "St. Johns, FL 32259",
+    budget: "$650k estimated value",
+    timeline: "0–30 days",
+    propertyType: "Single-family home",
+    notes:
+      "I am thinking about selling in the next 60 days and want pricing guidance plus a smart strategy for listing.",
+  },
+  {
+    name: "Buyer Lead One",
+    email: "buyerleadone@example.com",
+    phone: "904-555-0144",
+    leadType: "Buying",
+    location: "Jacksonville, FL",
+    budget: "$450k–$550k",
+    timeline: "1-3 months",
+    propertyType: "Single-family home",
+    notes:
+      "We are looking for a family home near good schools and want to understand what we can afford before starting tours.",
+  },
+  {
+    name: "Investor Lead One",
+    email: "investorleadone@example.com",
+    phone: "904-555-0182",
+    leadType: "Buying",
+    location: "St. Augustine, FL",
+    budget: "$300k–$450k",
+    timeline: "3-6 months",
+    propertyType: "Investment property",
+    notes:
+      "I am exploring a rental or short-term rental investment and would like help comparing neighborhoods and expected returns.",
+  },
+  {
+    name: "Condo Seller Lead",
+    email: "condoseller@example.com",
+    phone: "904-555-0127",
+    leadType: "Selling",
+    location: "St. Augustine Beach, FL",
+    budget: "$525k estimated value",
+    timeline: "1-3 months",
+    propertyType: "Condo",
+    notes:
+      "I own a condo near the beach and may sell this year if pricing is strong. I would like a market estimate and selling plan.",
+  },
+  {
+    name: "Browsing Buyer Lead",
+    email: "browsingbuyer@example.com",
+    phone: "904-555-0166",
+    leadType: "Buying",
+    location: "Nocatee, FL",
+    budget: "$600k–$750k",
+    timeline: "Just browsing",
+    propertyType: "Townhouse",
+    notes:
+      "We are casually exploring options and want to learn what is available in Nocatee before making a decision.",
+  },
 ];
 
 function getIntentLevel(timeline) {
@@ -112,6 +192,46 @@ function getFieldError(key, rawValue) {
   return "";
 }
 
+function mergeLeadPayloadWithAnalysis(basePayload, analysis) {
+  const intent = (analysis?.intent || "").trim();
+  const summary = (analysis?.summary || "").trim();
+  const followUpMessage = String(analysis?.follow_up_message || "").trim();
+  const normalizedType = (analysis?.type || basePayload.type || "").trim();
+  const normalizedLocation = (analysis?.location || basePayload.location || "").trim();
+  const normalizedBudget = (analysis?.budget || basePayload.budget || "").trim();
+  const normalizedTimeline = (analysis?.timeline || basePayload.timeline || "").trim();
+  const normalizedPropertyType = (
+    analysis?.property_type ||
+    basePayload.property_type ||
+    basePayload.propertyType ||
+    ""
+  ).trim();
+  const normalizedFinancingStatus = (
+    analysis?.financing_status ||
+    basePayload.financing_status ||
+    basePayload.financingStatus ||
+    ""
+  ).trim();
+
+  return {
+    ...basePayload,
+    type: normalizedType,
+    location: normalizedLocation,
+    budget: normalizedBudget,
+    timeline: normalizedTimeline,
+    propertyType: normalizedPropertyType,
+    property_type: normalizedPropertyType,
+    financingStatus: normalizedFinancingStatus,
+    financing_status: normalizedFinancingStatus,
+    intent,
+    Intent: intent,
+    summary,
+    Summary: summary,
+    follow_up_message: followUpMessage,
+    "Follow Up Message": followUpMessage,
+  };
+}
+
 function App() {
   const agentName = agentProfile?.name || "Your Name";
   const agentTitle = agentProfile?.title || "Real Estate Advisor";
@@ -144,12 +264,16 @@ function App() {
     phone: "",
     location: "",
     leadType: "",
+    budget: "",
+    timeline: "",
+    propertyType: "",
     notes: "",
   });
   const [backupSubmitting, setBackupSubmitting] = useState(false);
   const [backupSubmitted, setBackupSubmitted] = useState(false);
   const [backupError, setBackupError] = useState("");
   const [backupFieldErrors, setBackupFieldErrors] = useState({});
+  const [testLeadIndex, setTestLeadIndex] = useState(0);
   const [assistantFieldError, setAssistantFieldError] = useState("");
 
   const [data, setData] = useState({
@@ -451,26 +575,75 @@ function App() {
     setError("");
     setSubmitting(true);
 
-    const enriched = {
-      ...data,
-      budget: data.budget || data.propertyValue || "",
-      intent: getIntentLevel(data.timeline),
-      summary: buildSummary(data),
-      followUpMessage: generateFollowUp(data),
+    const payload = {
+      leadType: data.leadType || "",
+      type: data.leadType || "",
+      location: data.location || "",
+      budget: data.budget || "",
+      propertyValue: data.propertyValue || "",
+      timeline: data.timeline || "",
+      propertyType: data.propertyType || "",
+      property_type: data.propertyType || "",
+      financingStatus: data.financingStatus || "",
+      financing_status: data.financingStatus || "",
+      name: data.name || "",
+      email: data.email || "",
+      phone: data.phone || "",
+      notes: data.notes || "",
+      message: data.notes || "",
+      source: data.source || "",
+      pageUrl: data.pageUrl || window.location.href,
       submittedAt: new Date().toISOString(),
     };
 
     try {
+      const analysisResult = await requestLeadAnalysis(payload, "get_my_plan");
+      const finalPayload = mergeLeadPayloadWithAnalysis(
+        payload,
+        analysisResult.analysis,
+      );
+
+      console.log(
+        `[lead-analysis] get_my_plan analysis ${analysisResult.ok ? "succeeded" : "fell back"}; intent="${finalPayload.intent}"`,
+      );
+
+      if (import.meta.env.DEV) {
+        console.log("Webhook raw lead payload:", finalPayload);
+      }
+
+      console.log(
+        "[lead-analysis] get_my_plan final payload keys:",
+        Object.keys(finalPayload),
+      );
+      console.log(
+        '[lead-analysis] get_my_plan final intent:',
+        finalPayload.intent,
+      );
+      console.log(
+        '[lead-analysis] get_my_plan final follow_up_message:',
+        finalPayload.follow_up_message,
+      );
+      console.log(
+        '[lead-analysis] get_my_plan destination action:',
+        "WEBHOOK_URL fetch",
+      );
+
       await fetch(WEBHOOK_URL, {
         method: "POST",
         mode: "no-cors",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(enriched),
+        body: JSON.stringify(finalPayload),
       });
 
-      setData(enriched);
+      setData((prev) => ({
+        ...prev,
+        ...finalPayload,
+        summary: finalPayload.summary || buildSummary(payload),
+        intent: finalPayload.intent || "",
+        followUpMessage: finalPayload.follow_up_message || "",
+      }));
       setSubmitted(true);
     } catch (err) {
       console.error(err);
@@ -487,14 +660,43 @@ function App() {
     setBackupForm((prev) => ({ ...prev, [key]: value }));
   }
 
+  function fillTestLead() {
+    const nextLead = quickFormTestLeads[testLeadIndex % quickFormTestLeads.length];
+
+    setBackupSubmitted(false);
+    setBackupError("");
+    setBackupFieldErrors({});
+    setBackupForm({ ...nextLead });
+    setTestLeadIndex((prev) => (prev + 1) % quickFormTestLeads.length);
+
+    if (import.meta.env.DEV) {
+      console.log("Loaded test lead:", nextLead.email, nextLead);
+    }
+  }
+
   function validateBackupForm() {
     const nextErrors = {
       name: getFieldError("name", backupForm.name),
       email: getFieldError("email", backupForm.email),
+      phone: !(backupForm.phone || "").trim()
+        ? "Please enter your phone number."
+        : "",
+      location: !(backupForm.location || "").trim()
+        ? "Please enter your city or ZIP code."
+        : "",
+      leadType: !(backupForm.leadType || "").trim()
+        ? "Please enter whether you are buying, selling, or browsing."
+        : "",
+      timeline: !(backupForm.timeline || "").trim()
+        ? "Please choose your timeline."
+        : "",
+      propertyType: !(backupForm.propertyType || "").trim()
+        ? "Please choose a property type."
+        : "",
     };
 
     setBackupFieldErrors(nextErrors);
-    return !nextErrors.name && !nextErrors.email;
+    return Object.values(nextErrors).every((value) => !value);
   }
 
   async function submitBackupForm(e) {
@@ -504,34 +706,66 @@ function App() {
     setBackupSubmitting(true);
     setBackupSubmitted(false);
 
-    const enriched = {
+    const payload = {
       leadType: backupForm.leadType || "Unknown",
+      type: backupForm.leadType || "Unknown",
       location: backupForm.location || "",
-      budget: "",
+      budget: (backupForm.budget || "").trim(),
       propertyValue: "",
-      timeline: "",
-      propertyType: "",
+      timeline: backupForm.timeline || "",
+      propertyType: backupForm.propertyType || "",
+      property_type: backupForm.propertyType || "",
       financingStatus: "",
+      financing_status: "",
       name: backupForm.name || "",
       email: backupForm.email || "",
       phone: backupForm.phone || "",
       notes: backupForm.notes || "",
-      intent: "Cold",
-      summary: `${backupForm.name || "Lead"} submitted the quick form for ${backupForm.leadType || "real estate help"} in ${backupForm.location || "an unspecified area"}.`,
-      followUpMessage: `Hi ${backupForm.name || "there"}, thanks for reaching out. I’d be happy to help with your real estate goals. I’ll follow up with you soon.`,
+      message: backupForm.notes || "",
       source: "Website Quick Form",
       pageUrl: window.location.href,
       submittedAt: new Date().toISOString(),
     };
 
     try {
+      const analysisResult = await requestLeadAnalysis(payload, "quick_form");
+      const finalPayload = mergeLeadPayloadWithAnalysis(
+        payload,
+        analysisResult.analysis,
+      );
+
+      console.log(
+        `[lead-analysis] quick_form analysis ${analysisResult.ok ? "succeeded" : "fell back"}; intent="${finalPayload.intent}"`,
+      );
+
+      if (import.meta.env.DEV) {
+        console.log("Webhook raw lead payload:", finalPayload);
+      }
+
+      console.log(
+        "[lead-analysis] quick_form final payload keys:",
+        Object.keys(finalPayload),
+      );
+      console.log(
+        '[lead-analysis] quick_form final intent:',
+        finalPayload.intent,
+      );
+      console.log(
+        '[lead-analysis] quick_form final follow_up_message:',
+        finalPayload.follow_up_message,
+      );
+      console.log(
+        '[lead-analysis] quick_form destination action:',
+        "WEBHOOK_URL fetch",
+      );
+
       await fetch(WEBHOOK_URL, {
         method: "POST",
         mode: "no-cors",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(enriched),
+        body: JSON.stringify(finalPayload),
       });
 
       setBackupSubmitted(true);
@@ -541,6 +775,9 @@ function App() {
         phone: "",
         location: "",
         leadType: "",
+        budget: "",
+        timeline: "",
+        propertyType: "",
         notes: "",
       });
       setBackupFieldErrors({});
@@ -913,6 +1150,19 @@ function App() {
               ...(isMobile ? styles.backupGridMobile : {}),
             }}
           >
+            {import.meta.env.DEV ? (
+              <button
+                type="button"
+                style={{
+                  ...styles.secondaryButton,
+                  gridColumn: "1 / -1",
+                  justifySelf: "start",
+                }}
+                onClick={fillTestLead}
+              >
+                Fill Test Lead
+              </button>
+            ) : null}
             <div style={styles.fieldWrap}>
               <input
                 style={{
@@ -943,37 +1193,105 @@ function App() {
                 <p style={styles.fieldError}>{backupFieldErrors.email}</p>
               ) : null}
             </div>
+            <div style={styles.fieldWrap}>
+              <input
+                style={{
+                  ...styles.input,
+                  ...(isMobile ? styles.inputMobile : {}),
+                }}
+                type="text"
+                placeholder="Phone number"
+                value={backupForm.phone}
+                onChange={(e) => updateBackupField("phone", e.target.value)}
+              />
+              {backupFieldErrors.phone ? (
+                <p style={styles.fieldError}>{backupFieldErrors.phone}</p>
+              ) : null}
+            </div>
+            <div style={styles.fieldWrap}>
+              <input
+                style={{
+                  ...styles.input,
+                  ...(isMobile ? styles.inputMobile : {}),
+                }}
+                type="text"
+                placeholder="City or ZIP code"
+                value={backupForm.location}
+                onChange={(e) => updateBackupField("location", e.target.value)}
+              />
+              {backupFieldErrors.location ? (
+                <p style={styles.fieldError}>{backupFieldErrors.location}</p>
+              ) : null}
+            </div>
+            <div style={{ ...styles.fieldWrap, gridColumn: "1 / -1" }}>
+              <input
+                style={{
+                  ...styles.input,
+                  ...(isMobile ? styles.inputMobile : {}),
+                }}
+                type="text"
+                placeholder="Are you buying, selling, or just exploring?"
+                value={backupForm.leadType}
+                onChange={(e) => updateBackupField("leadType", e.target.value)}
+              />
+              {backupFieldErrors.leadType ? (
+                <p style={styles.fieldError}>{backupFieldErrors.leadType}</p>
+              ) : null}
+            </div>
             <input
               style={{
                 ...styles.input,
                 ...(isMobile ? styles.inputMobile : {}),
               }}
               type="text"
-              placeholder="Phone number"
-              value={backupForm.phone}
-              onChange={(e) => updateBackupField("phone", e.target.value)}
+              placeholder="Budget (e.g. $400k-$600k or $650k estimated value)"
+              value={backupForm.budget}
+              onChange={(e) => updateBackupField("budget", e.target.value)}
             />
-            <input
-              style={{
-                ...styles.input,
-                ...(isMobile ? styles.inputMobile : {}),
-              }}
-              type="text"
-              placeholder="City or ZIP code"
-              value={backupForm.location}
-              onChange={(e) => updateBackupField("location", e.target.value)}
-            />
-            <input
-              style={{
-                ...styles.input,
-                ...(isMobile ? styles.inputMobile : {}),
-                gridColumn: "1 / -1",
-              }}
-              type="text"
-              placeholder="Are you buying, selling, or just exploring?"
-              value={backupForm.leadType}
-              onChange={(e) => updateBackupField("leadType", e.target.value)}
-            />
+            <div style={styles.fieldWrap}>
+              <select
+                style={{
+                  ...styles.input,
+                  ...(isMobile ? styles.inputMobile : {}),
+                }}
+                value={backupForm.timeline}
+                onChange={(e) => updateBackupField("timeline", e.target.value)}
+              >
+                <option value="">Select timeline</option>
+                {quickFormTimelineOptions.map((option) => (
+                  <option key={option} value={option}>
+                    {option}
+                  </option>
+                ))}
+              </select>
+              {backupFieldErrors.timeline ? (
+                <p style={styles.fieldError}>{backupFieldErrors.timeline}</p>
+              ) : null}
+            </div>
+            <div style={{ ...styles.fieldWrap, gridColumn: "1 / -1" }}>
+              <select
+                style={{
+                  ...styles.input,
+                  ...(isMobile ? styles.inputMobile : {}),
+                }}
+                value={backupForm.propertyType}
+                onChange={(e) =>
+                  updateBackupField("propertyType", e.target.value)
+                }
+              >
+                <option value="">Select property type</option>
+                {quickFormPropertyTypeOptions.map((option) => (
+                  <option key={option} value={option}>
+                    {option}
+                  </option>
+                ))}
+              </select>
+              {backupFieldErrors.propertyType ? (
+                <p style={styles.fieldError}>
+                  {backupFieldErrors.propertyType}
+                </p>
+              ) : null}
+            </div>
             <textarea
               style={{
                 ...styles.textarea,

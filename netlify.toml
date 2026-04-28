@@ -1,0 +1,7 @@
+[build]
+  functions = "netlify/functions"
+
+[[redirects]]
+  from = "/api/analyze-lead"
+  to = "/.netlify/functions/analyze-lead"
+  status = 200
